@@ -32,7 +32,7 @@ public class ListActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-        List<String> strings = new ArrayList<String>(Arrays.asList("Hello", "world"));
+        List<String> strings = new ArrayList<>(Arrays.asList("Hello", "world"));
         observable = Observable.fromIterable(strings);
         textView = findViewById(R.id.title);
         //list();
@@ -94,12 +94,7 @@ public class ListActivity extends AppCompatActivity {
                 Log.d(TAG, "onComplete: ");
             }
         };
-        observable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).filter(new Predicate<String>() {
-            @Override
-            public boolean test(String s) {
-                return s.toLowerCase().contains("llo");
-            }
-        }).subscribe(observer);
+        observable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).filter(s -> s.toLowerCase().contains("llo")).subscribe(observer);
     }
 
     @Override

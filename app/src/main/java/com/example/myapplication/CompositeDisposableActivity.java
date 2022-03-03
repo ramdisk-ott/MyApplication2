@@ -25,7 +25,7 @@ public class CompositeDisposableActivity extends AppCompatActivity {
     private TextView filterTV, capsTV;
     private String temp = "", caps = "";
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
-    List<String> strings = new ArrayList<String>(Arrays.asList("Hello", "world"));
+    List<String> strings = new ArrayList<>(Arrays.asList("Hello", "world"));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +98,6 @@ public class CompositeDisposableActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        compositeDisposable.clear();
+        compositeDisposable.dispose();
     }
 }

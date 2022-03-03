@@ -1,6 +1,5 @@
 package com.example.myapplication;
 
-import androidx.annotation.MainThread;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -15,44 +14,43 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Function;
 import io.reactivex.rxjava3.functions.Predicate;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class ListActivity extends AppCompatActivity {
+public class CompositeDisposableActivity extends AppCompatActivity {
     private String TAG = "ListActivity";
-    private Observable<String> observable;
-    private Observer<String> observer;
-    private TextView textView;
-    private String temp = "";
-    private Disposable disposable;
+    private TextView filterTV, capsTV;
+    private String temp = "", caps = "";
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
+    List<String> strings = new ArrayList<String>(Arrays.asList("Hello", "world"));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_list);
-        List<String> strings = new ArrayList<String>(Arrays.asList("Hello", "world"));
-        observable = Observable.fromIterable(strings);
-        textView = findViewById(R.id.title);
-        //list();
+        setContentView(R.layout.activity_composite_disposable);
+        filterTV = findViewById(R.id.filterTV);
+        capsTV = findViewById(R.id.capsTV);
         filter();
+        caps();
     }
 
-    private void list() {
-
-        observer = new Observer<String>() {
+    private void caps() {
+        Observable<String> observable = Observable.fromIterable(strings);
+        Observer<String> observer = new Observer<String>() {
             @Override
             public void onSubscribe(@NonNull Disposable d) {
                 Log.d(TAG, "onSubscribe: ");
-                disposable = d;
+                compositeDisposable.add(d);
             }
 
             @Override
             public void onNext(@NonNull String s) {
                 Log.d(TAG, "onNext: ");
-                temp = temp + s;
-                textView.setText(temp);
+                caps = caps + s;
+                capsTV.setText(caps);
             }
 
             @Override
@@ -65,23 +63,23 @@ public class ListActivity extends AppCompatActivity {
                 Log.d(TAG, "onComplete: ");
             }
         };
-        observable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(observer);
+        observable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).filter(s -> s.toLowerCase().contains("llo")).map(s -> s.toUpperCase()).subscribe(observer);
     }
 
     private void filter() {
-
-        observer = new Observer<String>() {
+        Observable<String> observable = Observable.fromIterable(strings);
+        Observer<String> observer = new Observer<String>() {
             @Override
             public void onSubscribe(@NonNull Disposable d) {
                 Log.d(TAG, "onSubscribe: ");
-                disposable = d;
+                compositeDisposable.add(d);
             }
 
             @Override
             public void onNext(@NonNull String s) {
                 Log.d(TAG, "onNext: ");
                 temp = temp + s;
-                textView.setText(temp);
+                filterTV.setText(temp);
             }
 
             @Override
@@ -94,17 +92,12 @@ public class ListActivity extends AppCompatActivity {
                 Log.d(TAG, "onComplete: ");
             }
         };
-        observable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).filter(new Predicate<String>() {
-            @Override
-            public boolean test(String s) {
-                return s.toLowerCase().contains("llo");
-            }
-        }).subscribe(observer);
+        observable.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).filter(s -> s.toLowerCase().contains("llo")).subscribe(observer);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        disposable.dispose();
+        compositeDisposable.clear();
     }
 }
